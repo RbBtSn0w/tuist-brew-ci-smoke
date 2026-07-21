@@ -22,12 +22,12 @@ jobs:
       HOMEBREW_NO_ANALYTICS: "1"
       TUIST_VERSION_LINE: "4.202"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Install pinned Tuist line with Homebrew
         run: |
           brew tap tuist/tuist
-          brew install --formula "tuist@${TUIST_VERSION_LINE}"
+          brew install --formula "tuist/tuist/tuist@${TUIST_VERSION_LINE}"
 
       - name: Verify Tuist version
         run: |

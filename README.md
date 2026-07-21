@@ -17,7 +17,7 @@ Run the same smoke test locally:
 
 ```bash
 brew tap tuist/tuist
-brew install --formula tuist@4.202
+brew install --formula tuist/tuist/tuist@4.202
 tuist generate --no-open
 xcodebuild \
   -project TuistBrewSmoke.xcodeproj \
