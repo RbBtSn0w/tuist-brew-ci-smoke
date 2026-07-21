@@ -26,6 +26,7 @@ jobs:
 
       - name: Install pinned Tuist line with Homebrew
         run: |
+          brew update
           brew tap tuist/tuist
           brew install --formula "tuist/tuist/tuist@${TUIST_VERSION_LINE}"
 
