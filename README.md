@@ -17,6 +17,10 @@ The direct `brew tap tuist/tuist` route was also tested on `macos-15` on July 21
 `conflicts_with formula:` declaration was incompatible with the runner's
 Homebrew cask DSL. Installing the pinned formula file avoids loading that cask.
 
+The smoke build runs on `macos-26`. Tuist `4.202.5` requires a Swift compatibility
+library that is unavailable in the default runtime environment of the tested
+`macos-15` runner, even though the formula itself installs successfully there.
+
 Run the same smoke test locally:
 
 ```bash
