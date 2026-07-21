@@ -27,11 +27,14 @@ jobs:
 
       - name: Install pinned Tuist formula with Homebrew
         run: |
-          formula_path="${RUNNER_TEMP}/tuist@${TUIST_VERSION}.rb"
+          local_tap="rbbtsn0w/tuist-ci"
+          brew tap-new "${local_tap}"
+          tap_path="$(brew --repository "${local_tap}")"
+          formula_path="${tap_path}/Formula/tuist@${TUIST_VERSION}.rb"
           curl --fail --silent --show-error --location \
             "https://raw.githubusercontent.com/tuist/homebrew-tuist/${TUIST_TAP_COMMIT}/Formula/tuist@${TUIST_VERSION}.rb" \
             --output "${formula_path}"
-          brew install --formula "${formula_path}"
+          brew install --formula "${local_tap}/tuist@${TUIST_VERSION}"
 
       - name: Verify Tuist version
         run: |
