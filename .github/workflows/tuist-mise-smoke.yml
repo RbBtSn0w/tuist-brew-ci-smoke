@@ -1,0 +1,56 @@
+name: Tuist Mise Smoke
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tuist-mise-smoke-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: macos-26
+    timeout-minutes: 20
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+
+      - name: Set up Tuist
+        uses: jdx/mise-action@c37c93293d6b742fc901e1406b8f764f6fb19dac # v2
+
+      - name: Verify toolchain
+        run: |
+          test "$(tuist version)" = "4.202.2"
+          xcodebuild -version
+          swift --version
+
+      - name: Generate project
+        run: tuist generate --no-open
+
+      - name: Build generated project
+        run: |
+          xcodebuild \
+            -project TuistBrewSmoke.xcodeproj \
+            -scheme TuistBrewSmoke \
+            -configuration Debug \
+            -destination 'generic/platform=macOS' \
+            -derivedDataPath "${RUNNER_TEMP}/TuistMiseDerivedData" \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+
+      - name: Upload smoke evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: tuist-mise-smoke-${{ github.run_id }}
+          path: .tool-versions
+          retention-days: 1

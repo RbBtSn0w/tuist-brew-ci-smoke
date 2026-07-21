@@ -1,0 +1,60 @@
+name: Routing Gate Smoke
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      fail_optional:
+        description: Fail the selected optional job to prove gate propagation
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  classify:
+    runs-on: ubuntu-latest
+    outputs:
+      selected: ${{ steps.scope.outputs.selected }}
+    steps:
+      - id: scope
+        env:
+          FAIL_OPTIONAL: ${{ inputs.fail_optional || 'false' }}
+        run: echo "selected=$FAIL_OPTIONAL" >> "$GITHUB_OUTPUT"
+
+  optional-skipped:
+    needs: classify
+    if: ${{ needs.classify.outputs.selected == 'never' }}
+    runs-on: ubuntu-latest
+    steps:
+      - run: exit 0
+
+  optional-selected:
+    needs: classify
+    runs-on: ubuntu-latest
+    steps:
+      - name: Exercise selected result
+        env:
+          FAIL_OPTIONAL: ${{ needs.classify.outputs.selected }}
+        run: test "$FAIL_OPTIONAL" != "true"
+
+  gate:
+    needs:
+      - classify
+      - optional-skipped
+      - optional-selected
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Enforce optional job results
+        env:
+          CLASSIFY_RESULT: ${{ needs.classify.result }}
+          SKIPPED_RESULT: ${{ needs.optional-skipped.result }}
+          SELECTED_RESULT: ${{ needs.optional-selected.result }}
+        run: |
+          test "$CLASSIFY_RESULT" = "success"
+          test "$SKIPPED_RESULT" = "skipped"
+          test "$SELECTED_RESULT" = "success"
