@@ -1,0 +1,54 @@
+name: Tuist Homebrew Smoke
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tuist-brew-smoke-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: macos-15
+    timeout-minutes: 20
+    env:
+      HOMEBREW_NO_ANALYTICS: "1"
+      TUIST_VERSION_LINE: "4.202"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install pinned Tuist line with Homebrew
+        run: |
+          brew tap tuist/tuist
+          brew install --formula "tuist@${TUIST_VERSION_LINE}"
+
+      - name: Verify Tuist version
+        run: |
+          actual_version="$(tuist version)"
+          case "${actual_version}" in
+            "${TUIST_VERSION_LINE}".*) ;;
+            *)
+              echo "Expected Tuist ${TUIST_VERSION_LINE}.x, got ${actual_version}" >&2
+              exit 1
+              ;;
+          esac
+
+      - name: Generate project
+        run: tuist generate --no-open
+
+      - name: Build generated project
+        run: |
+          xcodebuild \
+            -project TuistBrewSmoke.xcodeproj \
+            -scheme TuistBrewSmoke \
+            -configuration Debug \
+            -destination 'generic/platform=macOS' \
+            CODE_SIGNING_ALLOWED=NO \
+            build

@@ -1,0 +1,7 @@
+/.build
+/Derived
+/.derived
+/.tuist-cache
+/*.xcodeproj
+/*.xcworkspace
+DerivedData/
